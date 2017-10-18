@@ -120,7 +120,7 @@ public class SpecificityCloud extends JFrame {
     /**
      * @return
      */
-
+/*
     public String displayAssociations() {
         //String ret = "No association rule found";
         String ret = "";
@@ -156,6 +156,49 @@ public class SpecificityCloud extends JFrame {
         System.out.println(ret);
         return ret;
     }
+
+*/
+    public String displayAssociations() {
+        //String ret = "No association rule found";
+        String ret = "";
+        if ((this.filteredRewritingVector != null) && (!this.currentFilter.equals(""))) {
+            System.out.println("COMPUTE ASSOCIATIONS HERE");
+            // RewritingVector rw = new RewritingVector();
+            Hashtable<String, Double> assoc = new Hashtable<String, Double>();
+            double dep, associationDegree;
+            for (Integer i : initialRewritingVector.getVector().keySet()) {
+                Integer m = vocabulary.getFSById(i).getId();
+                String n = "=>" + "[" + m.toString() + "]";
+                System.out.println(n);
+                dep = this.filteredRewritingVector.getMu(i) / this.initialRewritingVector.getVector().get(i);
+                System.out.println("dep:" +dep);
+                if (dep > 1) {
+                    associationDegree = 1 - 1 / dep;
+                    System.out.println("ass"+associationDegree);
+                    System.out.println("The attribute is a property depending on filter label \n");
+                } else {
+                    associationDegree = 0;
+                    System.out.println("The attribute has no dependence or negative dependency with filter label");
+                }
+
+
+                String result2 = String.valueOf(this.filters).concat(n);
+                assoc.put(result2, associationDegree);
+            }
+            // assoc.put(String.valueOf(this.filters), associationDegree);
+            String result = ret.concat(assoc.toString());
+            // System.out.println(result);
+            System.out.println(result);
+
+
+        } else {
+            // ret = "Association rules can be discovered only if a first filter is applied";
+        }
+        System.out.println(ret);
+        return ret;
+    }
+
+
 
  /*   public String displayAtypicality() {
         String ret = "";
