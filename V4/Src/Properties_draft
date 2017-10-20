@@ -1,0 +1,299 @@
+// Atypicality Rule Engine
+package Gregory82;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Hashtable;
+import java.util.Set;
+
+import static java.lang.Math.abs;
+import static java.lang.Math.min;
+
+
+/**
+ * Created by toan on 24/07/17.
+ */
+public class AtypicalityRuleEngine {
+
+    Hashtable<String, Float> cover;
+    Hashtable<String, Float> coverFilter;
+
+    //Algorithm a = new Algorithm();
+
+    Hashtable <String, Float> D = new Hashtable <String, Float>();
+    Hashtable<String, Float> NC = new Hashtable <String, Float>();
+
+    //Hashtable <String, Double> cover = a.readDataSet("");
+    //Hashtable <String, Double> coverFilter = a.calculateDRVWithFilter("/home/toan/IdeaProjects/research-bi/data-summarization-and-exploration/src/test/resources/com/semsoft/research_bi/summarization/vocabulary.csv", "highFacebookLikes");//todo
+
+    public Hashtable <String, Float> distanceComputation(String fromfile) throws IOException {
+
+        String line = "";
+        Vocabulary2 v = new Vocabulary2(fromfile);
+        v.loadfile();
+
+        BufferedReader csvFile = new BufferedReader(new FileReader(fromfile));
+
+        try {
+            line = csvFile.readLine();
+            while (line != null) {
+
+                Hashtable <String, Attribute> attributesList = v.getAttributesList();
+                Enumeration <String> keys = attributesList.keys();
+                attributesList = v.getAttributesList();
+
+                while (keys.hasMoreElements()) {
+
+                    String nameOfAttribute = keys.nextElement();
+                    Attribute attribute = attributesList.get(nameOfAttribute);
+                    Partition partition = attribute.getPartition();
+                    ArrayList <FuzzySet> modalities = partition.getModalities();
+
+                    for (int j = 0; j < modalities.size(); j++) {
+                        float max = 0;
+                        float d;
+
+                        for (int k = 0; k < modalities.size(); k++) {
+                            if (v.getType().equals("Categorical")) {
+                                if (j != k) {
+                                    d = 1;
+                                } else {
+                                    d = 0;
+                                }
+                            } else if ((v.getType().equals("Numerical")) && (modalities.size() > 1)) {
+                                d = abs(j - k) / (modalities.size() - 1);
+                            } else {
+                                d = 0;
+                            }
+                            float tmp = min(d, partition.getNumberOfFuzzySet());
+                            if (max < tmp) {
+                                max = tmp;
+                            }
+                        }
+                        Set <String> labels = coverFilter.keySet(); // get label also with modalities for k,
+                        for (String label : labels) {
+                            D.put(label, max);
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            csvFile.close();
+        }
+        return D;
+    }
+
+
+
+    // Create method to compute NC
+
+    public Hashtable<String, Float> NCComputation(){
+
+        float NCScore;
+        Set <String> labels = coverFilter.keySet();
+
+        for (String lab : labels) {
+            float tmp = (coverFilter.get(lab) / cover.get(lab));
+            NCScore = 1 - min (1,tmp); // Compute the NC Score
+            NC.put(lab, NCScore);
+        }
+        return NC;
+    }
+
+    // Create method to compute atypicality
+
+    public Hashtable<String, Float> atypicalityComputation() {
+
+        Hashtable <String, Float> atypical = new Hashtable <String, Float>();
+        float atypScore;
+        Set <String> labels = coverFilter.keySet();
+
+        for (String lab : labels) {
+            atypScore = min(NC.get(lab), D.get(lab));
+            NC.put(lab, atypScore);
+        }
+        return atypical;
+    }
+}
+
+/*
+TODO
+- First; compute the quantified distance D in equation 5, in order to do that we cut it into 3 steps:
+
+   + For all attribute, we compute the distance between one label and the other labels.
+   + Compare the value between this distance with the cover degree of the filter label.
+   + Compare to find the maximum value for each pair of filter label and one different label.
+
+- Second, Compute the NC, by getting the comparison of the cover degree divided by the cover filter of each attribute.
+
+- Third, compute the atyp Score, is the minimum value of D and NC for each attribute; The result returns will be the same as association
+
+ */
+
+
+
+
+
+
+
+
+ // Association Rule Engine
+
+
+ package Gregory82;
+
+ import java.util.Hashtable;
+ import java.util.Set;
+
+ /*
+  * Created by toan on 20/03/17.
+  */
+     public class AssociationRuleEngine {
+
+         Hashtable<String, Double> cover;
+         Hashtable<String, Double> coverFilter;
+         Hashtable<String, Double> dependency = new Hashtable <String, Double>();
+         Hashtable<String, Double> association = new Hashtable <String, Double>();
+
+
+
+         public AssociationRuleEngine(Hashtable<String, Double> cover, Hashtable<String, Double> coverFilter){
+             cover = new Hashtable <String, Double>();
+             coverFilter = new Hashtable <String, Double>();
+             this.cover = cover;
+             this.coverFilter = coverFilter;
+         }
+         // Create the Getter and Setter
+
+         public Hashtable <String, Double> getDependency(){
+             return dependency;
+         }
+
+         public Hashtable <String, Double> getAssociation() {
+             return association;
+         }
+
+         // Create a method to compute the Association Rule
+
+         public Hashtable<String, Double> calculateAssociation (){
+             Set <String> labels = cover.keySet();
+             double associationDegree, dep;
+
+             for (String vPrime : labels) {
+                 dep = coverFilter.get(vPrime) / cover.get (vPrime);
+                 if (dep > 1){
+                     associationDegree = 1 - 1/dep;
+                     System.out.println("The attribute is a property depending on filter label \n");
+                 } else {
+                     associationDegree = 0;
+                     System.out.println("The attribute has no dependence or negative dependeny with filter label");
+                 }
+                 dependency.put(vPrime, dep);
+                 association.put(vPrime, associationDegree);
+             }
+
+             System.out.println("Association: " +association);
+             return association;
+
+         }
+
+     }
+
+
+
+// Diversified Tag
+
+package Gregory82;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Hashtable;
+
+import static java.lang.Math.abs;
+import static java.lang.Math.sqrt;
+
+/**
+ * Created by toan on 24/07/17.
+ */
+
+public class DiversifiedTags {
+
+
+    Hashtable <String, Float> cover;
+    Hashtable <String, Float> div = new Hashtable <String, Float>();
+
+    public Hashtable <String, Float> diversifiedComputation(String fromfile) throws IOException {
+
+        String line = "";
+        Vocabulary2 v = new Vocabulary2(fromfile);
+        v.loadfile();
+
+        BufferedReader csvFile = new BufferedReader(new FileReader(fromfile));
+
+        try {
+            line = csvFile.readLine();
+            while (line != null) {
+
+                Hashtable <String, Attribute> attributesList = v.getAttributesList();
+                Enumeration <String> keys = attributesList.keys();
+                //   attributesList = v.getAttributesList();
+
+                while (keys.hasMoreElements()) {
+
+                    String nameOfAttribute = keys.nextElement();
+                    Attribute attribute = attributesList.get(nameOfAttribute);
+                    Partition partition = attribute.getPartition();
+                    ArrayList <FuzzySet> modalities = partition.getModalities();
+                    int s = partition.getNumberOfFuzzySet();
+                    float divScore;
+
+                    for (int j = 0; j < modalities.size(); j++) {
+                        float sum = 0;
+
+                        for (int i = 0; i < modalities.size(); i++) {
+                            sum += cover.get(i);
+                            float meanValueOfCover = sum / s;
+
+                            float tmp = cover.get(j) - meanValueOfCover;
+                            divScore = (float) (1 - sqrt(tmp / abs(modalities.size())));
+                            // Use tmp to store the value of the min between cover and distance for each label
+
+                            //Set <String> labels = cover.keySet(); // get label also with modalities for k,
+                            div.put(nameOfAttribute, divScore);
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            csvFile.close();
+        }
+        System.out.println("The diversity score of labels are: " + div);
+        return div;
+    }
+
+}
+
+
+/* TODO:
+
+
+- Step 1: Compute the mean of all of the covers for one attribute.
+- Step 2: compute the sum of the subtraction for each cover of one label to the mean of one attribute
+- Step 3; Divide the sum by the number of fuzzy sets in one attribute and make the square root of its, store it in temp; the divScore for each attribute will be equal to 1 - temp
+When we execute, a hashtable of diversity is a key as name of Attribute and value is divScore
+
+*/
+
+
+
+

@@ -142,35 +142,29 @@ public class CommandInterface {
         if (this.data == null) {
             System.err.println("You first have to load a dataset");
             err = 1;
-        }
+            }
         if (err == 0) {
             System.out.println("Here");
-            SpecificityCloud dataobj = new SpecificityCloud(this.data, this.vocabulary, this.rewriter);
+
+            SpecificityCloud dataobj = new SpecificityCloud(this.filteredData, this.vocabulary, this.rewriter, true);
+            System.out.println("after dataobj Initialization");
             System.out.println(dataobj.displayAssociations());
-            // ret = dataobj.displayAssociations();
+            //ret = dataobj.displayAssociations();
             // need to start work from here
         }
 
-        System.out.println(" it is your turn");
+
+        System.out.println("Toan it is your turn");
         return ret;
     }
 
     //Returns fuzzy sets and their associated atypicality degree wrt. the current filtered dataset
     public Hashtable<FuzzySet, Double> discoverAtypicalProperties() {
         Hashtable<FuzzySet, Double> ret = new Hashtable<FuzzySet, Double>();
-        int err = 0;
         if (this.filteredData == null) {
             System.err.println("You first have to apply a filter.");
         }
-        if (this.data == null) {
-            System.err.println("You first have to load a dataset");
-            err = 1;
-        }
-        if (err == 0) {
-            System.out.println("Here");
-            // need to start work from here
-        }
-        System.out.println(" it is your turn");
+        System.out.println("Toan it is your turn");
         return ret;
     }
 
@@ -178,6 +172,9 @@ public class CommandInterface {
     //Returns attributes and their associated diversity degree
     public Hashtable<Attribute, Double> discoverDiversifiedDimensions() {
         Hashtable<Attribute, Double> ret = new Hashtable<Attribute, Double>();
+        if (this.filteredData == null) {
+            System.err.println("You first have to apply a filter.");
+        }
         int err = 0;
         if (this.filteredData == null) {
             System.err.println("You first have to apply a filter.");
@@ -188,15 +185,18 @@ public class CommandInterface {
         }
         if (err == 0) {
             System.out.println("Here");
+            SpecificityCloud dataobj = new SpecificityCloud(this.filteredData, this.vocabulary, this.rewriter);
+            System.out.println(dataobj.displayDiversity());
+            //ret = dataobj.displayAssociations();
             // need to start work from here
         }
 
-        System.out.println(" it is your turn");
+        System.out.println("Toan it is your turn");
         return ret;
     }
 
     public void run() {
-        String line = " ";
+        String line = "";
 
         while (!line.toLowerCase().equals("quit")) {
             prompt();

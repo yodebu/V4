@@ -118,13 +118,8 @@ public class Vocabulary {
         try {
             BufferedReader csvFile = new BufferedReader(new FileReader(this.nameOfCSV));
             rawline = csvFile.readLine();
-            System.out.println(rawline);
             while (rawline != null) {
                 line = rawline.split(",");
-                for(String ss: line)
-                    System.out.println(ss);
-
-                // System.out.println(line.toString());
 
                 if (!line[0].startsWith("#")) {
                     type = "";

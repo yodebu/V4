@@ -117,6 +117,26 @@ public class SpecificityCloud extends JFrame {
         this.filteredRewritingVector = null;
     }
 
+    public SpecificityCloud(Dataset d, Vocabulary v, Rewriter r, boolean cli) {
+        if(cli) {
+
+        }
+        this.data = d;
+        this.vocabulary = v;
+        this.rw = r;
+        this.currentFilter = "";
+        this.filters = new ArrayList<Integer>();
+        RewritingVector rwVect = new RewritingVector();
+        rwVect = r.rewriteDataSet(d);
+        if (this.initialRewritingVector == null)
+            this.initialRewritingVector = rwVect;
+        else
+            this.filteredRewritingVector = rwVect;
+        this.initialRewritingVector = null;
+        this.filteredRewritingVector = null;
+    }
+
+
     /**
      * @return
      */
@@ -160,7 +180,11 @@ public class SpecificityCloud extends JFrame {
 */
     public String displayAssociations() {
         //String ret = "No association rule found";
-        String ret = "";
+        String ret = " ";
+
+        //System.out.println(this.filteredRewritingVector.toString());
+        //System.out.println(this.currentFilter);
+
         if ((this.filteredRewritingVector != null) && (!this.currentFilter.equals(""))) {
             System.out.println("COMPUTE ASSOCIATIONS HERE");
             // RewritingVector rw = new RewritingVector();
@@ -192,7 +216,7 @@ public class SpecificityCloud extends JFrame {
 
 
         } else {
-            // ret = "Association rules can be discovered only if a first filter is applied";
+            ret = "Association rules can be discovered only if a first filter is applied";
         }
         System.out.println(ret);
         return ret;
@@ -293,6 +317,48 @@ public class SpecificityCloud extends JFrame {
 
         return ret;
     }
+
+
+
+    public String discoverAssociationRules() {
+        //String ret = "No association rule found";
+        String ret = "";
+        if ((this.filteredRewritingVector != null) && (!this.currentFilter.equals(""))) {
+            //System.out.println("COMPUTE ASSOCIATIONS HERE");
+            //RewritingVector rw = new RewritingVector();
+
+            Hashtable<String, Double> assoc = new Hashtable<String, Double>();
+            double dep, associationDegree;
+
+            for (Integer i : initialRewritingVector.getVector().keySet()) {
+                Integer m = vocabulary.getFSById(i).getId();
+                String n = "=>" + "[" + m.toString() + "]";
+                //  System.out.println(n);
+                dep = this.filteredRewritingVector.getMu(i) / this.initialRewritingVector.getVector().get(i);
+                //System.out.println("dep:" +dep);
+
+                if (dep > 1) {
+                    associationDegree = 1 - 1 / dep;
+                    //System.out.println("ass"+associationDegree);
+                    System.out.println("The attribute is a property depending on filter label \n");
+                } else {
+                    associationDegree = 0;
+                    System.out.println("The attribute has no dependence or negative dependency with filter label");
+                }
+
+                String result2 = String.valueOf(this.filters).concat(n);
+                assoc.put(result2, associationDegree);
+            }
+            //  assoc.put(String.valueOf(this.filters), associationDegree);
+            String result = ret.concat(assoc.toString());
+            // System.out.println(result);
+            System.out.println(result);
+        }
+        //    ret = "Association rules can be discovered only if a first filter is applied";
+        return ret;
+    }
+
+
 
 
 
